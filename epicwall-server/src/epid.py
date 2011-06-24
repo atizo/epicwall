@@ -20,14 +20,36 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USAª
 #
 
-from daemon.base import DefaultCommandHandler
+from commands.base import DefaultCommandHandler
 from twisted.internet import reactor, protocol
+import glob
+import serial
+import sys
 
 VERSION = '0.1'
 PORT = 5000
 
+def scan_serial_devices():
+    """scan for available ports. return a list of device names."""
+    return glob.glob('/dev/ttyS*') + glob.glob('/dev/ttyUSB*') + glob.glob('/dev/ttyACM*')
+
+SERIAL_DEVICE = None
+print 'Available serial devices:'
+for name in scan_serial_devices():
+    print name
+    if "USB" in name:
+        SERIAL_DEVICE = name
+if SERIAL_DEVICE:
+    print 'Selected serial device:', SERIAL_DEVICE
+else:
+    print 'No USB serial device found'
+    sys.exit()
+
 class EpicwallServerProtocol(protocol.Protocol):
+    
     def connectionMade(self):
+        self.serial_device = serial.Serial(SERIAL_DEVICE, 115200, timeout=1)
+        
         self.transport.write('EPICWALL SERVER %s\n\n' % VERSION)
         
         if self.connected > 1:

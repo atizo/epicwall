@@ -20,26 +20,43 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
-from daemon.base import CommandHandler, DefaultCommandHandler
+from commands.base import CommandHandler, DefaultCommandHandler
+from playback.formats import PPMVideoStore
+from playback.players import SerialFramePlayer
+import os
+
+ANIMATIONS_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../animations')
 
 class AnimationCommandHandler(CommandHandler):
+    
     def __init__(self, protocol):
         super(AnimationCommandHandler, self).__init__(protocol)
         self.subprompt = 'animation'
+        
+        self.animation_store = PPMVideoStore(ANIMATIONS_PATH)
+        self.player = SerialFramePlayer(self.protocol.serial_device)
     
     def command_help(self, arguments):
         self.protocol.transport.write('''Commands:
     help                           Display this help text
     list                           List the available animations
     play [name]                    Start playing an animation
+    stop                           Stop a playing animation
     exit                           Exit pixel animation mode
 ''')
     
     def command_list(self, arguments):
-        pass
+        self.protocol.transport.write('%s\n' % '\n'.join(self.animation_store.list()))
     
     def command_play(self, arguments):
-        pass
+        if len(arguments) != 1 or arguments[0] not in self.animation_store.list():
+            self.protocol.transport.write('Invalid animation name\n')
+        else:
+            animation_name = arguments[0]
+            self.player.play(self.animation_store.get_frames(animation_name))
+    
+    def command_stop(self, arguments):
+        self.player.stop()
     
     def command_exit(self, arguments):
         self.protocol.command_handler = DefaultCommandHandler(self.protocol)

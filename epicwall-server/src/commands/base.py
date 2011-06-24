@@ -20,20 +20,25 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
+MAX_COMMAND_LENGTH = 10
+
 class CommandHandler(object):
+    
     def __init__(self, protocol):
         self.subprompt = None
         self.protocol = protocol
     
     def handle_command(self, data):
         data = data.strip()
-        command = data.split(' ')[0]
-        
-        arguments = []
-        if len(data.split(' ')) > 1:
-            arguments = data.split(' ')[1:]
+        command = data[:MAX_COMMAND_LENGTH].split(' ')[0]
         
         if len(command):
+            arguments = None
+            if len(data.split(' ')) > 1:
+                arguments = data.split(' ')[1:]
+            if arguments is None:
+                arguments = []
+        
             if hasattr(self, 'command_%s' % command):
                 command_func = getattr(self, 'command_%s' % command)
                 command_func(arguments)
@@ -50,10 +55,11 @@ class CommandHandler(object):
 
 
 class DefaultCommandHandler(CommandHandler):
+    
     def command_help(self, arguments):
         self.protocol.transport.write('''Commands:
     help                           Display this help text
-    mode [stream|animation|script] Switch to an mode
+    mode [stream|animation|script] Switch to a mode
     exit                           Close connection
 ''')
     
@@ -72,8 +78,8 @@ class DefaultCommandHandler(CommandHandler):
             if mode == 'stream':
                 #self.protocol.command_handler = StreamCommandHandler(self.protocol)
                 self.protocol.transport.write('Not implemented\n')
-            elif mode == 'pixel':
-                from daemon.anim import AnimationCommandHandler
+            elif mode == 'animation':
+                from commands.anim import AnimationCommandHandler
                 self.protocol.command_handler = AnimationCommandHandler(self.protocol)
             elif mode == 'script':
                 #self.protocol.command_handler = PixelCommandHandler(self.protocol)
