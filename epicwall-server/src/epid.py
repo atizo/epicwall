@@ -22,12 +22,16 @@
 
 from commands.base import DefaultCommandHandler
 from twisted.internet import reactor, protocol
+from twisted.web.server import Site
+from web.pages import get_root_page
 import glob
 import serial
 import sys
 
+
 VERSION = '0.1'
-PORT = 5000
+CMD_PORT = 5000
+WEB_PORT = 8000
 
 def scan_serial_devices():
     """scan for available ports. return a list of device names."""
@@ -69,9 +73,13 @@ class EpicwallServerProtocol(protocol.Protocol):
         self.command_handler.handle_command(data)
 
 def main():
-    factory = protocol.ServerFactory()
-    factory.protocol = EpicwallServerProtocol
-    reactor.listenTCP(PORT, factory)
+    cmd_factory = protocol.ServerFactory()
+    cmd_factory.protocol = EpicwallServerProtocol
+    reactor.listenTCP(CMD_PORT, cmd_factory)
+    
+    web_factory = Site(get_root_page())
+    reactor.listenTCP(WEB_PORT, web_factory)
+    
     reactor.run()
 
 if __name__ == '__main__':
