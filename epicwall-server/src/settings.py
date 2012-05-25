@@ -17,6 +17,14 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USAª
 #
+import os
 
+
+VERSION = '0.1'
+
+WEB_PORT = 8000
+SHELL_PORT = 5000
+
+PIXEL_ANIMATIONS_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../pixel_animations')

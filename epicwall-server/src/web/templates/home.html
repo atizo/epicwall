@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block main %}
+    <div id="content"></div>
+    
+    <button id="test-play">Play Test Animation</button>
+    <button id="test-stop">Stop Test Animation</button>
+{% endblock %}
+{% block scripts %}
+    <script type="text/x-template" id="tmpl-home">
+        {% include "_home.html" %}
+    </script>
+    <script type="text/x-template" id="tmpl-configuration">
+        {% include "_configuration.html" %}
+    </script>
+{% endblock %}

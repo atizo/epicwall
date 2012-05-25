@@ -22,33 +22,34 @@
 import os
 import zipfile
 
+
 class PPMVideoStore(object):
-    
+
     def __init__(self, video_dir):
         self._video_dir = video_dir
         self._videos = {}
         self.scan()
         self._player = None
-        
+
     def _tokenize(self, data):
         for line in data.split('\n'):
             if line[0] != '#':
                 for t in line.split():
                     yield t
- 
+
     def _ppm6toframe(self, data):
         t = self._tokenize(data)
-        nexttoken = lambda : next(t)
+        nexttoken = lambda: next(t)
         assert 'P3' == nexttoken(), 'Wrong filetype'
-        width, height, maxval = (int(nexttoken()) for i in range(3))        
+        width, height, maxval = (int(nexttoken()) for i in range(3))
         bitmap = [range(height) for row in range(width)]
-        
-        for h in range(height-1, -1, -1):
+
+        for h in range(height - 1, -1, -1):
             for w in range(0, width):
                 bitmap[w][h] = [int(nexttoken()) for i in range(3)]
-     
+
         return bitmap
-        
+
     def scan(self):
         self._videos = {}
         file_list = []
@@ -56,7 +57,7 @@ class PPMVideoStore(object):
             for video in files:
                 if ".zip" in video.lower():
                     file_list.append(os.path.join(self._video_dir, video))
-        
+
         for video_file in file_list:
             video_name = os.path.basename(video_file).split('.')[0]
             self._videos[video_name] = []
@@ -68,14 +69,14 @@ class PPMVideoStore(object):
                     print 'ERROR: Did not find %s in zip file' % filename
                 else:
                     self._videos[video_name].append(self._ppm6toframe(data))
-    
+
     def get_frames(self, name):
-        if self._videos.has_key(name):
+        if name in self._videos:
             return self._videos[name]
-    
+
     def list(self):
         return self._videos.keys()
-    
+
     def remove(self, name):
-        if self._videos.has_key(name):
+        if name in self._videos:
             del self._videos[name]

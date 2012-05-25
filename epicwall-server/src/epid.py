@@ -20,66 +20,27 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USAª
 #
 
-from commands.base import DefaultCommandHandler
-from twisted.internet import reactor, protocol
+from core.serial import detect_serial_device
+from serial import Serial
+from twisted.internet import reactor
 from twisted.web.server import Site
-from web.pages import get_root_page
-import glob
-import serial
-import sys
+from web.pages import init_web_root, init_resources
+import settings
 
-
-VERSION = '0.1'
-CMD_PORT = 5000
-WEB_PORT = 8000
-
-def scan_serial_devices():
-    """scan for available ports. return a list of device names."""
-    return glob.glob('/dev/ttyS*') + glob.glob('/dev/ttyUSB*') + glob.glob('/dev/ttyACM*')
-
-SERIAL_DEVICE = None
-print 'Available serial devices:'
-for name in scan_serial_devices():
-    print name
-    if "USB" in name:
-        SERIAL_DEVICE = name
-if SERIAL_DEVICE:
-    print 'Selected serial device:', SERIAL_DEVICE
-else:
-    print 'No USB serial device found'
-    sys.exit()
-
-class EpicwallServerProtocol(protocol.Protocol):
-    
-    def connectionMade(self):
-        self.serial_device = serial.Serial(SERIAL_DEVICE, 115200, timeout=1)
-        
-        self.transport.write('EPICWALL SERVER %s\n\n' % VERSION)
-        
-        if self.connected > 1:
-            self.transport.write('Another client is already connected, disconnecting.\n')
-            self.transport.loseConnection()
-        
-        self.command_handler = DefaultCommandHandler(self)
-        self.command_handler.prompt()
-    
-    def connectionLost(self, reason):
-        pass
-    
-    def dataReceived(self, data):
-        if len(data):
-            print 'Received', data
-        
-        self.command_handler.handle_command(data)
 
 def main():
-    cmd_factory = protocol.ServerFactory()
-    cmd_factory.protocol = EpicwallServerProtocol
-    reactor.listenTCP(CMD_PORT, cmd_factory)
-    
-    web_factory = Site(get_root_page())
-    reactor.listenTCP(WEB_PORT, web_factory)
-    
+    settings.SERIAL_DEVICE = Serial(detect_serial_device(), 115200, timeout=1)
+
+    web_root = init_web_root()
+    web_factory = Site(web_root)
+    init_resources(web_root, settings)
+    reactor.listenTCP(settings.WEB_PORT, web_factory)
+
+#    shell_factory = protocol.ServerFactory()
+#    shell_factory.protocol = lambda: TelnetTransport(TelnetBootstrapProtocol,
+#        insults.ServerProtocol, EpicwallShellProtocol)
+#    reactor.listenTCP(settings.SHELL_PORT, shell_factory)
+
     reactor.run()
 
 if __name__ == '__main__':

@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block main %}
+    <ul>
+        {% for animation in animations %}
+            <li>{{animation}} <a href="#" data-animation="{{animation}}">play</a></li>
+        {% endfor %}
+    </ul>
+    <p>
+        <a href="/">Home</a>
+    </p>
+{% endblock %}
