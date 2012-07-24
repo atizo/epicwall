@@ -1,0 +1,17 @@
+<form class="well form-inline">
+    <label>W</label>
+    <input type="number" min="1" value="<%= model.get("w") %>" class="input-small wall-width">
+    <label>H</label>
+    <input type="number" min="1" value="<%= model.get("h") %>" class="input-small wall-height">
+    <button type="button" class="btn dim-save">Save</button>
+</form>
+
+<div class="row">
+    <div class="span8">
+        <canvas id="myCanvas"></canvas>
+    </div>
+    <div class="span4"><h1></h1></div>
+</div>
+<div>
+    <button class="btn btn-primary start-mapping" href="#">Start mapping</button>
+</div>

@@ -20,9 +20,9 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USAª
 #
 
-from jinja2 import Environment, PackageLoader
 from core.formats import PPMVideoStore
 from core.players import SerialFramePlayer, TestAnimationPlayer
+from jinja2 import Environment, PackageLoader
 from twisted.web.error import NoResource
 from twisted.web.resource import Resource
 from twisted.web.static import File
@@ -37,38 +37,44 @@ def init_web_root():
     return root
 
 
-def init_resources(root, settings):
-    root.putChild('', HomePage(settings))
-    root.putChild('static', File(os.path.join(os.path.dirname(os.path.abspath(__file__)), './static')))
-    root.putChild('animations', PixelAnimation(settings))
-    root.putChild('test', TestAnimation(settings))
-
-
-class EpicPage(Resource, object):
-    def __init__(self, settings):
-        super(EpicPage, self).__init__()
-        self.settings = settings
-
-    def _get_base_context(self):
-        c = {
-            'version': self.settings.VERSION,
-        }
-        return c
-
-
 class EpicResource(Resource, object):
     def __init__(self, settings):
         super(EpicResource, self).__init__()
         self.settings = settings
 
 
-class HomePage(EpicPage):
-    isLeaf = False
+class Led(EpicResource):
+    isLeaf = True
 
     def render_GET(self, request):
-        c = self._get_base_context()
-        template = env.get_template('home.html')
-        return template.render(c).encode("utf-8")
+        return 'Post LED address and RGB value'
+
+    def render_POST(self, request):
+        sd = self.settings.SERIAL_DEVICE
+        data = [0xFF, 4]
+        data.extend((254, 250, 0))
+        data.extend([0xFF, 4])
+        data.extend((254, 254, 254))
+        sd.write("".join([chr(v) for v in data]))
+        return 'ok'
+
+
+class Configuration(EpicResource):
+    isLeaf = True
+
+    def render_GET(self, request):
+        # read current settings
+        configfile = open(self.settings.WALL_CONFIG_FILE, 'r')
+        data = simplejson.load(configfile)
+        configfile.close()
+        return simplejson.dumps(data)
+
+    def render_POST(self, request):
+        configfile = open(self.settings.WALL_CONFIG_FILE, 'w')
+        configobj = simplejson.loads(request.content.getvalue())
+        simplejson.dump(configobj, configfile, indent=4, sort_keys=True)
+        configfile.close()
+        return 'ok'
 
 
 class TestAnimation(EpicResource):
@@ -80,7 +86,8 @@ class TestAnimation(EpicResource):
             return NoResource()
 
         if not hasattr(self, 'player') or self.player is None:
-            self.player = TestAnimationPlayer(self.settings.SERIAL_DEVICE, width=50, height=1)
+            self.player = TestAnimationPlayer(self.settings.SERIAL_DEVICE,
+                                              width=50, height=1)
 
         action = path_args[0]
         if action == 'play':
@@ -125,3 +132,19 @@ class PixelAnimation(EpicResource):
                 print 'Stopped pixel animation.'
 
         return simplejson.dumps(response_data)
+
+
+RESOURCES = {
+             'animations': PixelAnimation,
+             'test': TestAnimation,
+             'configuration': Configuration,
+             'led': Led
+             }
+
+
+def init_resources(root, settings):
+    root.putChild('', File(os.path.join(os.path.dirname(os.path.abspath(__file__)), './templates/index.html')))
+    root.putChild('static', File(os.path.join(os.path.dirname(os.path.abspath(__file__)), './static')))
+
+    for resource_name, resource_class in RESOURCES.items():
+        root.putChild(resource_name, resource_class(settings))

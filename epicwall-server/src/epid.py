@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
 # epicwall Project
@@ -26,10 +27,14 @@ from twisted.internet import reactor
 from twisted.web.server import Site
 from web.pages import init_web_root, init_resources
 import settings
+import sys
 
 
 def main():
-    settings.SERIAL_DEVICE = Serial(detect_serial_device(), 115200, timeout=1)
+    if len(sys.argv) == 1:
+        settings.SERIAL_DEVICE = Serial(detect_serial_device(), 115200, timeout=1)
+    elif len(sys.argv) == 2:
+        settings.SERIAL_DEVICE = Serial(sys.argv[1], 115200, timeout=1)
 
     web_root = init_web_root()
     web_factory = Site(web_root)

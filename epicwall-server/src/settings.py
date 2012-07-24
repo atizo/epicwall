@@ -27,4 +27,7 @@ VERSION = '0.1'
 WEB_PORT = 8000
 SHELL_PORT = 5000
 
-PIXEL_ANIMATIONS_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../pixel_animations')
+BASE_PATH = os.path.dirname(os.path.abspath(__file__))
+
+PIXEL_ANIMATIONS_PATH = os.path.join(BASE_PATH, '../pixel_animations')
+WALL_CONFIG_FILE = os.path.join(BASE_PATH, '../config/wall.json')
