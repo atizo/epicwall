@@ -21,9 +21,6 @@
 #
 import os
 
-
-VERSION = '0.1'
-
 WEB_PORT = 8000
 SHELL_PORT = 5000
 

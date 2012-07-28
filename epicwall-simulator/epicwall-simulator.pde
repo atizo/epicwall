@@ -5,8 +5,8 @@ import processing.serial.*;
 Serial port;
 
 Cell[][] wall;
-int rows = 5;
-int cols = 10;
+int rows = 5, cols = 10, pkgPointer = 0;
+int[] led = new int[4];
 
 class Cell {
   float x,y,w,h;
@@ -20,10 +20,10 @@ class Cell {
 }
 
 void setup() {
+  frameRate(100);
   size(500, 150);
   println(Serial.list());
   port = new Serial(this, "/dev/ttyS11", 115200);
-  port.bufferUntil(-1); // signed...
   wall = new Cell[rows][cols];
   for (int i = 0; i < rows; i ++ ) {
     for (int j = 0; j < cols; j ++ ) {
@@ -32,16 +32,17 @@ void setup() {
   }
 }
 
-void draw() {}
-
-byte[] input = new byte[5];
-int id, id_r, id_g, id_b;
-void serialEvent(Serial port) {
-  input = port.readBytes();
-  if (input.length != 5) return; 
-  id = input[0] & 255;
-  id_r = input[1] & 255;
-  id_g = input[2] & 255;
-  id_b = input[3] & 255;
-  wall[ id / cols ][ id % cols ].draw(id_r, id_g, id_b);
+void draw() {
+  while (port.available() > 0) {
+    char inByte = port.readChar();
+    if(inByte == 255){
+      pkgPointer = 0;
+    }else if(pkgPointer < 4){
+      led[pkgPointer] = inByte;
+      if(pkgPointer == 3){
+          wall[ led[0] / cols ][ led[0] % cols ].draw(led[1], led[2], led[3]);
+      }
+      pkgPointer += 1;
+    }
+  }
 }

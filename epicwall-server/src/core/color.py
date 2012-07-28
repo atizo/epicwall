@@ -22,7 +22,7 @@
 
 
 def correct_color(color_value):
-    return int(2 ** (color_value / 32.0))
+    return min(int(color_value), 254)
 
 
 def correct_rgb(rgb_tuple):

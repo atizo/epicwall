@@ -27,53 +27,115 @@ function(app, Backbone) {
       };
     },
     
-    render: function(manage) {    	
-    	return manage(this).render().then(function(el) {
-    		var s = 50.0, w = this.model.get("w"), h = this.model.get("h"),
-    		mapping = this.model.get("mapping"), label = '', tw = 0, th = 0,
-    		fs = 20;
-    		var canvas = document.getElementById("myCanvas");
-    		canvas.width = w * s + 1;
-    		canvas.height = h * s + 1;
-            var context = canvas.getContext("2d");
-            context.font = "normal " + fs + "px Sans";
-            context.strokeStyle = "#ccc";
-            
-            for (var y = 0; y < h; y++){
-            	for (var x = 0; x < w; x++){
-            		context.rect(x * s + 0.5, y * s + 0.5, s, s);
-            		label = mapping[y * w + x + 1] || '?';            		
-            		tw = s / 2.0 - context.measureText(label).width / 2.0;
-            		th = s / 2.0 + fs / 2.0 - 2;
-            		context.fillText(label, x * s + tw, y * s + th );
-            	}            	
+    drawText: function(label, x, y){
+        var fs = 20;
+        tw = this.gridSize / 2.0 - this.context2d.measureText(label).width / 2.0;
+        th = this.gridSize / 2.0 + fs / 2.0 - 2;
+        this.context2d.font = "normal " + fs + "px Sans";
+        this.context2d.fillText(label, x + tw, y + th);        
+    },
+
+    drawMatrix: function(showText) {
+      var w = this.model.get("w"), h = this.model.get("h"),
+      mapping = this.model.get("mapping"), label = '', tw = 0, th = 0,
+      fs = 20;
+      var canvas = document.getElementById("myCanvas");
+      canvas.width = w * this.gridSize + 1;
+      canvas.height = h * this.gridSize + 1;
+      this.context2d.clearRect(0, 0, canvas.width, canvas.height);
+      this.context2d.strokeStyle = "#ccc";
+        
+      for (var y = 0; y < h; y++){
+        for (var x = 0; x < w; x++){
+          this.context2d.rect(x * this.gridSize + 0.5, y * this.gridSize + 0.5, this.gridSize, this.gridSize);
+          if(showText){
+            label = mapping[y * w + x];
+            if(_.isUndefined(label)){
+              label = '?';
             }
-            context.stroke();
-            
-          });
+            this.drawText(label, x * this.gridSize, y * this.gridSize);           
+          }
+        }
+      }
+      this.context2d.stroke();
+    },
+    
+    render: function(manage) {
+      return manage(this).render().then(function(el) {
+        $('.save-mapping').hide();
+        $('.abort-mapping').hide();
+        $('.next-mapping').hide();
+        var canvas = document.getElementById("myCanvas");
+        this.context2d = canvas.getContext("2d");        
+        this.drawMatrix(true);
+      });
     },
     
     changeDimension: function() {
         this.model.save({
           w: this.$(".wall-width").val(),
-          h: this.$(".wall-height").val()
+          h: this.$(".wall-height").val(),
+          addressstart: this.$(".address-start").val(),
+          addressend: this.$(".address-end").val()
         });
-
-        this.$el.removeClass("editing");
+    },
+    
+    nextMap: function(){
+        this.mapstep += 1;
+        if(this.mapstep <= this.model.get('addressend')){            
+            this.ledStep();
+        }else{
+            $('.mapstep').text('Done!');
+            $('.save-mapping').show();
+            $('.next-mapping').hide();
+            $('.save-mapping').click($.proxy(function(){
+                this.model.save({
+                    mapping: this.tempMap
+                });
+            }, this));          
+        } 
+    },
+    
+    clickWall: function(e){
+        var x = Math.floor(e.offsetX / this.gridSize),
+        y = Math.floor(e.offsetY / this.gridSize), led = 0;
+        led = y * this.model.get('w') + x;
+        if(_.has(this.tempMap, led)){
+            return;
+        }
+        this.tempMap[led] = this.mapstep;
+        this.drawText(this.mapstep, x * this.gridSize, y * this.gridSize);
+        this.nextMap();
+    },
+    
+    ledStep: function(){
+        $.post('/led/', {ledid: this.mapstep});
+        $('.mapstep').text(this.mapstep);
     },
     
     startMapping: function() {
-        $.post('/led/')
-    },    
+      $('.start-mapping').hide();
+      $('.abort-mapping').show();      
+      $('.next-mapping').show();  
+      this.mapstep = parseInt(this.model.get('addressstart'), 10);
+      this.tempMap = {};
+      this.drawMatrix(false);      
+      this.ledStep();
+      $('.abort-mapping').click($.proxy(function(){
+          this.render();
+      }, this));
+      $('.next-mapping').click($.proxy(function(){
+          this.nextMap();
+      }, this));
+      $('#myCanvas').click($.proxy(this.clickWall, this));
+            
+    },
     
     initialize: function() {
         this.model.on("change", this.render, this);
-        $('#test-play').on('click', function(event) {
-            $.post('/test/play/');
-        });
-        $('#test-stop').on('click', function(event) {
-            $.post('/test/stop/');
-        });
+        this.mapstep = 0;
+        this.gridSize = 50.0;
+        this.tempMap = {};
       }
   });
 

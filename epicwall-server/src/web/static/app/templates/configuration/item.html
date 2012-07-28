@@ -1,7 +1,11 @@
 <form class="well form-inline">
-    <label>W</label>
+    <label>Address Start</label>
+    <input type="number" min="0" value="<%= model.get("addressstart") %>" class="input-small address-start">
+    <label>Address End</label>
+    <input type="number" min="1" value="<%= model.get("addressend") %>" class="input-small address-end">
+    <label>Width</label>
     <input type="number" min="1" value="<%= model.get("w") %>" class="input-small wall-width">
-    <label>H</label>
+    <label>Height</label>
     <input type="number" min="1" value="<%= model.get("h") %>" class="input-small wall-height">
     <button type="button" class="btn dim-save">Save</button>
 </form>
@@ -10,8 +14,11 @@
     <div class="span8">
         <canvas id="myCanvas"></canvas>
     </div>
-    <div class="span4"><h1></h1></div>
+    <div class="span4"><h1 class="mapstep"></h1></div>
 </div>
 <div>
-    <button class="btn btn-primary start-mapping" href="#">Start mapping</button>
+    <button class="btn btn-primary start-mapping" href="#">Start</button>
+    <button class="btn btn-danger abort-mapping" href="#">Abort</button>
+    <button class="btn btn-primary next-mapping" href="#">Next</button>
+    <button class="btn btn-success save-mapping" href="#">Save</button>
 </div>

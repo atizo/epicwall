@@ -21,12 +21,15 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USAª
 #
 
+from core.animator import Animator
 from core.serial import detect_serial_device
 from serial import Serial
-from twisted.internet import reactor
-from twisted.web.server import Site
-from web.pages import init_web_root, init_resources
+from tornado import ioloop, web
+from web.handlers import ConfigHandler, LedHandler, AnimationHandler, \
+    EchoWebSocket, AnimatorHandler
+import os
 import settings
+import signal
 import sys
 
 
@@ -36,17 +39,30 @@ def main():
     elif len(sys.argv) == 2:
         settings.SERIAL_DEVICE = Serial(sys.argv[1], 115200, timeout=1)
 
-    web_root = init_web_root()
-    web_factory = Site(web_root)
-    init_resources(web_root, settings)
-    reactor.listenTCP(settings.WEB_PORT, web_factory)
+    animator = Animator(settings)
 
-#    shell_factory = protocol.ServerFactory()
-#    shell_factory.protocol = lambda: TelnetTransport(TelnetBootstrapProtocol,
-#        insults.ServerProtocol, EpicwallShellProtocol)
-#    reactor.listenTCP(settings.SHELL_PORT, shell_factory)
+    def signal_handler(signal, frame):
+        animator.stop()
+        sys.exit(0)
 
-    reactor.run()
+    signal.signal(signal.SIGINT, signal_handler)
+
+    routes = [
+        (r"/static/(.*)", web.StaticFileHandler,
+         {"path": os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                               'web/static')}),
+        (r"/configuration/", ConfigHandler, dict(coreconf=settings)),
+        (r"/led/", LedHandler, dict(coreconf=settings)),
+        (r"/animation/", AnimationHandler, dict(coreconf=settings, animator=animator)),
+        (r"/animator/", AnimatorHandler, dict(coreconf=settings, animator=animator)),
+        (r"/stream/", EchoWebSocket, dict(coreconf=settings, animator=animator)),
+        (r"/(.*)", web.StaticFileHandler,
+         {"path": os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                               'web/templates/index.html')}),
+    ]
+
+    web.Application(routes).listen(settings.WEB_PORT)
+    ioloop.IOLoop.instance().start()
 
 if __name__ == '__main__':
     main()
