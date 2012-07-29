@@ -1,8 +1,5 @@
-<div id="<%= model.get("layer") %>">
-    
-    <canvas class="preview"></canvas>
-    
-    <form class="">
+<div class="row">
+    <form class="span8">
         <div class="control-group">
         <select class="atypes animconf span2">
             <% _.each(model.get("atypes"), function(i) { %> <option <% if(model.get("atype")==i){ %>selected="selected"<% } %> ><%= i %></option><% }); %>
@@ -15,6 +12,10 @@
         
         <label for="speed">Speed: <span class="speed-label">
         <%= model.get("speed") %></span></label><input value="<%= model.get("speed") %>" class="animconf" id="speed" type="range"  min="1" max="50" />
+        <label for="opacity">Opacity: <span class="opacity-label">
+        <%= model.get("opacity") %></span></label><input value="<%= model.get("opacity") %>" class="animconf" id="opacity" type="range"  min="0" max="100" />
     </form>
-
+    <div class="span4 prevcan">
+        <canvas class="preview "></canvas>
+    </div>
 </div>

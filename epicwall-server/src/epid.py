@@ -29,7 +29,6 @@ from web.handlers import ConfigHandler, LedHandler, AnimationHandler, \
     EchoWebSocket, AnimatorHandler
 import os
 import settings
-import signal
 import sys
 
 
@@ -40,12 +39,6 @@ def main():
         settings.SERIAL_DEVICE = Serial(sys.argv[1], 115200, timeout=1)
 
     animator = Animator(settings)
-
-    def signal_handler(signal, frame):
-        animator.stop()
-        sys.exit(0)
-
-    signal.signal(signal.SIGINT, signal_handler)
 
     routes = [
         (r"/static/(.*)", web.StaticFileHandler,

@@ -68,9 +68,7 @@ class EchoWebSocket(WebSocketHandler):
 
     def open(self):
         print "WebSocket opened"
-
-    def on_message(self, message):
-        self.animator.set_websocket(int(message), self.ws_connection)
+        self.animator.set_websocket(self.ws_connection)
 
     def on_close(self):
         print "WebSocket closed"

@@ -22,7 +22,7 @@
 from core.blit import Layer
 from core.blit.blends import multiply, screen, add, subtract, linear_light, \
     hard_light
-import numpy
+import numpy as np
 
 BLEND_MODE_NORMAL = 'normal'
 BLEND_MODE_MULTIPLY = 'multiply'
@@ -55,13 +55,11 @@ class BaseAnimation(object):
         self._colorize = False
         self._brighness = 0
         self._contrast = 0
+        self._opacity = 100
 
         self._step = 0
-        r = numpy.ones((self._h, self._w)) * 0.0
-        g = numpy.ones((self._h, self._w)) * 0.0
-        b = numpy.ones((self._h, self._w)) * 0.0
-        a = numpy.ones((self._h, self._w)) * 0.0
-        self._rgba = [r, g, b, a]
+        a = np.zeros((self._h, self._w))
+        self._rgba = [a, a.copy(), a.copy(), a.copy()]
         self._prevframe = Layer(self._rgba)
         self._last_time = 0
 
@@ -73,8 +71,9 @@ class BaseAnimation(object):
                  'brightness': self._brighness,
                  'speed': self._speed,
                  'blend_mode': self._blend_mode,
+                 'opacity': self._opacity,
                  'w': self._w,
-                 'h': self._h,
+                 'h': self._h
                  }
 
     def conf(self, data):
@@ -83,6 +82,7 @@ class BaseAnimation(object):
         self._contrast = int(data['contrast'])
         self._brightness = int(data['brightness'])
         self._speed = int(data['speed'])
+        self._opacity = int(data['opacity'])
         self._blend_mode = data['blend_mode']
 
     def setp(self, x, y, r, g, b, a):
@@ -92,9 +92,10 @@ class BaseAnimation(object):
         self._rgba[3][y][x] = a
 
     def clear(self, r, g, b, a):
-        for x in range(self._w):
-            for y in range(self._h):
-                self.setp(x, y, r, g, b, a)
+        self._rgba[0][:] = r
+        self._rgba[1][:] = g
+        self._rgba[2][:] = b
+        self._rgba[3][:] = a
 
     def frame(self, time):
         if time >= self._last_time + 1000 / self._speed:
@@ -104,5 +105,10 @@ class BaseAnimation(object):
         else:
             return self._prevframe
 
-    def get_blend_func(self):
+    @property
+    def opacity(self):
+        return self._opacity / 100.0
+
+    @property
+    def blendmode(self):
         return BELEND_MODES[self._blend_mode]

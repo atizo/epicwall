@@ -2,3 +2,30 @@ body {
 	padding-top: 60px;
 	padding-bottom: 40px;
 }
+
+div.animation form, div.prevcan{
+	padding: 20px;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+}
+
+.preview {
+    background: transparent url(/static/img/checker.png);
+}
+
+div.animation:nth-child(odd){
+    background-color: #EEE;
+}
+
+div.animation:nth-child(even){
+    background-color: #f6f6f6;
+}
+
+div.animation{
+    border-bottom: 2px solid #DDD;
+}
+
+div.animation:last-child{
+    border-bottom: none;
+}

@@ -64,9 +64,27 @@ class RandomPixel(BaseAnimation):
         return 'Random Pixel'
 
 
+class Strobe(BaseAnimation):
+
+    def animate(self):
+
+        if self._step:
+            self.clear(0, 0, 0, 1)
+            self._step = 0
+        else:
+            self.clear(1, 1, 1, 1)
+            self._step = 1
+
+        return Layer(self._rgba)
+
+    def name(self):
+        return 'Strobe'
+
+
 ANIMATIONS = {
               'None': Empty,
               'RGB Cycle': RGBCylce,
               'Random Pixel': RandomPixel,
               'Spiral': Spiral,
+              'Strobe': Strobe,
               }
