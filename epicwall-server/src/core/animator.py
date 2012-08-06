@@ -33,6 +33,7 @@ class Animator(PeriodicCallback):
 
     def __init__(self, settings):
         self._player = None
+        self.toggle = False
         self._w = 0
         self._h = 0
         self._mapping = None
@@ -49,7 +50,7 @@ class Animator(PeriodicCallback):
                             Empty(self._w, self._h)
                             ]
 
-        super(Animator, self).__init__(self._play_frame, 2)
+        super(Animator, self).__init__(self._play_frame, 25)
 
     def _load_config(self):
         configfile = open(self._settings.WALL_CONFIG_FILE, 'r')
@@ -66,21 +67,25 @@ class Animator(PeriodicCallback):
         ctime = time.time() * 1000
         frames = [animation.frame(ctime) for animation in self._animations]
 
-        # preview layers
-        stream = {
-                  'previews': []
-                  }
+        if self.toggle:
+            # preview layers
+            stream = {
+                      'previews': []
+                      }
 
-        for i, anim in enumerate(self._animations):
-            pf = [np.round(band * 255.0) for band in frames[i].getrgba()]
-            pixles = []
-            for y in range(self._h):
-                for x in range(self._w):
-                    pixles.append("rgba(%d,%d,%d,%d)" % (pf[0][y][x], pf[1][y][x], pf[2][y][x], pf[3][y][x]))
+            for i, anim in enumerate(self._animations):
+                pf = [np.round(band * 255.0) for band in frames[i].getrgba()]
+                pixles = []
+                for y in range(self._h):
+                    for x in range(self._w):
+                        pixles.append("rgba(%d,%d,%d,%d)" % (pf[0][y][x], pf[1][y][x], pf[2][y][x], pf[3][y][x]))
 
-            stream['previews'].append(pixles)
+                stream['previews'].append(pixles)
 
-        self._websocket.write_message(simplejson.dumps(stream))
+            self._websocket.write_message(simplejson.dumps(stream))
+            self.toggle = False
+        else:
+            self.toggle = True
 
         outframe = self._bg\
         .blend(frames[3], opacity=self._animations[3].opacity,
@@ -108,7 +113,7 @@ class Animator(PeriodicCallback):
                 g = n[1][y][x]
                 b = n[2][y][x]
                 color = correct_rgb((r, g, b))
-                fdata.extend([0xFF, y * self._w + x])
+                fdata.extend([0xFF, self._mapping[y * self._w + x]])
                 fdata.extend(color)
 
         self._serial_device.write("".join([chr(v) for v in fdata]))
