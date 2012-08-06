@@ -58,7 +58,9 @@ class Animator(PeriodicCallback):
         configfile.close()
         self._w = int(data['w'])
         self._h = int(data['h'])
-        self._mapping = data['mapping']
+        self._mapping = {}
+        for k, v in data['mapping'].items():
+            self._mapping[int(k)] = int(v)
         ones = np.ones((self._h, self._w))
         zeros = np.zeros((self._h, self._w))
         self._bg = Layer([zeros, zeros.copy(), zeros.copy(), ones])
