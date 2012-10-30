@@ -139,7 +139,7 @@ class Animator(PeriodicCallback):
         for layer, anim in enumerate(self._animations):
             data = anim.json()
             data['layer'] = layer
-            data['atypes'] = ANIMATIONS.keys()
+            data['atypes'] = sorted(ANIMATIONS.keys())
             data['blend_modes'] = BELEND_MODES.keys()
             data['atype'] = anim.name()
             anims.append(data)
