@@ -67,14 +67,19 @@ class RandomPixel(BaseAnimation):
 
 class Strobe(BaseAnimation):
 
+    def frame(self, time):
+        return self.animate()
+
     def animate(self):
 
-        if self._step:
+        gap = 50 - self._speed + 1
+
+        if self._step <= gap:
             self.clear(0, 0, 0, 1)
-            self._step = 0
+            self._step = self._step + 1
         else:
             self.clear(1, 1, 1, 1)
-            self._step = 1
+            self._step = 0
 
         return Layer(self._rgba)
 
