@@ -52,16 +52,19 @@ def main():
     def dmxdata(data):
         print data
 
+        pindex = 0
+
         fdata = []
 
         for y in range(h):
             for x in range(w):
-                r = n[0][y][x]
-                g = n[1][y][x]
-                b = n[2][y][x]
+                r = data[pindex * 3]
+                g = data[pindex * 3 + 1]
+                b = data[pindex * 3 + 2]
                 color = correct_rgb((r, g, b))
                 fdata.extend([0xFF, mapping[y * w + x]])
                 fdata.extend(color)
+                pindex += 1
 
         serial_device.write("".join([chr(v) for v in fdata]))
 
