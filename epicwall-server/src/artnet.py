@@ -21,6 +21,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USAª
 #
 
+from core.color import correct_rgb
 from core.serial import detect_serial_device
 from ola.ClientWrapper import ClientWrapper
 from ola.OlaClient import OLADNotRunningException
@@ -28,7 +29,6 @@ from serial import Serial
 import settings
 import simplejson
 import sys
-from core.color import correct_rgb
 
 
 def main():

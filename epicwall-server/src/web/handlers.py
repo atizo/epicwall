@@ -20,6 +20,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USAª
 #
 
+from core.artnet import Artnet
 from core.formats import PPMVideoStore
 from tornado.websocket import WebSocketHandler
 import simplejson
@@ -102,6 +103,26 @@ class AnimatorHandler(EpicRequestHandler):
             self.animator.play()
         else:
             self.animator.stop()
+
+        self.write('ok')
+
+
+class ArtnetHandler(EpicRequestHandler):
+
+    def initialize(self, coreconf, artnet_dict):
+        self.coreconf = coreconf
+        self.artnet_dict = artnet_dict
+
+    def get(self):
+        self.write('Start/Stop artnet')
+
+    def post(self):
+        if self.get_argument('cmd') == 'play':
+            self.artnet_dict['artnet'] = Artnet(self.coreconf)
+            self.artnet_dict['artnet'].play()
+        else:
+            if 'artnet' in self.artnet_dict:
+                self.artnet_dict['artnet'].stop()
 
         self.write('ok')
 

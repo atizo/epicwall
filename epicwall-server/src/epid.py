@@ -26,7 +26,7 @@ from core.serial import detect_serial_device
 from serial import Serial
 from tornado import ioloop, web
 from web.handlers import ConfigHandler, LedHandler, AnimationHandler, \
-    EchoWebSocket, AnimatorHandler
+    EchoWebSocket, AnimatorHandler, ArtnetHandler
 import os
 import settings
 import sys
@@ -39,6 +39,7 @@ def main():
         settings.SERIAL_DEVICE = Serial(sys.argv[1], 115200, timeout=1)
 
     animator = Animator(settings)
+    artnet_dict = {}
 
     routes = [
         (r"/static/(.*)", web.StaticFileHandler,
@@ -48,6 +49,7 @@ def main():
         (r"/led/", LedHandler, dict(coreconf=settings)),
         (r"/animation/", AnimationHandler, dict(coreconf=settings, animator=animator)),
         (r"/animator/", AnimatorHandler, dict(coreconf=settings, animator=animator)),
+        (r"/artnet/", ArtnetHandler, dict(coreconf=settings, artnet_dict=artnet_dict)),
         (r"/stream/", EchoWebSocket, dict(coreconf=settings, animator=animator)),
         (r"/(.*)", web.StaticFileHandler,
          {"path": os.path.join(os.path.dirname(os.path.abspath(__file__)),
