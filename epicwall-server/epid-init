@@ -1,0 +1,28 @@
+#!/bin/sh
+### BEGIN INIT INFO
+# Provides:          epid
+# Required-Start:    $remote_fs $syslog $network olad
+# Required-Stop:     $remote_fs $syslog $network olad
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: EpicWall daemon
+# Description:       This init script starts/stops the EpicWall daemon
+### END INIT INFO
+
+case "$1" in
+    start)
+        echo -n "Starting EpicWall daemon..."
+        start-stop-daemon --background --chuid pi --name epid --start --exec /home/pi/epicwall/epicwall-server/src/epid.py
+        echo "done."
+        ;;
+    stop)
+        echo -n "Stopping EpicWall daemon..."
+        start-stop-daemon --name epid --stop
+        echo "done."
+        ;;
+    *)
+        echo "Usage: $0 {start|stop}"
+        exit 1
+esac
+
+exit 0
