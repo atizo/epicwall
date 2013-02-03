@@ -55,9 +55,17 @@ class LedHandler(EpicRequestHandler):
             data.extend((0, 0, 0))
             sd.write("".join([chr(v) for v in data]))
 
-        data = [0xFF, int(self.get_argument('ledid'))]
-        data.extend((254, 240, 0))
-        sd.write("".join([chr(v) for v in data]))
+        lindex = int(self.get_argument('ledid'))
+
+        mdata = []
+
+        for led in xrange(int(s['addressstart']), lindex):
+            mdata.extend([0xFF, led])
+            mdata.extend((0, 0, 200))
+
+        mdata.extend([0xFF, lindex])
+        mdata.extend((254, 240, 0))
+        sd.write("".join([chr(v) for v in mdata]))
 
         self.write('ok')
 
