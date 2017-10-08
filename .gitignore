@@ -2,3 +2,7 @@
 *.o
 *.pyc
 */.settings/org.eclipse.core.resources.prefs
+
+.idea
+
+standalone/clips/*.clip
